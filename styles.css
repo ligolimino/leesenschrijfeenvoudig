@@ -285,6 +285,21 @@ button {
   accent-color: var(--teal);
 }
 
+.question-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.question-option input {
+  width: 22px;
+  height: 22px;
+  accent-color: var(--teal);
+}
+
 .series-item-editable {
   align-items: center;
 }

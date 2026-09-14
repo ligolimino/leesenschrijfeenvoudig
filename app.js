@@ -115,7 +115,6 @@
       einde: DATA.clickBook.einde.join(", "),
     },
     exercises: loadFromStorage(STORAGE_KEYS.exercises, []),
-    showCopyWord: false,
     editingExerciseId: null,
     publicationMessage: "",
   };
@@ -246,7 +245,10 @@
       return;
     }
     const question = getCurrentQuestion();
-    const showCopyWord = sharedExercise?.showCopyWord === true;
+    // Nieuwe links bewaren de keuze per vraag. De tweede waarde houdt
+    // eerder gemaakte links met één algemene keuze werkend.
+    const showCopyWord =
+      question.showCopyWord ?? (sharedExercise?.showCopyWord === true);
     const missingOrder = question.missing;
     const typedChunks = {};
 
@@ -476,6 +478,11 @@
                   )
                   .join("")}
               </div>
+              <label class="question-option">
+                <input type="checkbox" data-question-example="${index}"
+                  ${question.showCopyWord ? "checked" : ""}>
+                Toon voorbeeldwoord
+              </label>
             </div>
             <span class="series-pattern">${patternOf(question.word)}</span>
             ${iconButton("close", `remove:${index}`, `Verwijder ${question.word}`)}
@@ -520,10 +527,6 @@
           placeholder="bijvoorbeeld 1.3 – kip"
         >
       </div>
-      <label class="check-option">
-        <input id="show-copy-word" type="checkbox" ${state.showCopyWord ? "checked" : ""}>
-        Toon het volledige woord om over te schrijven
-      </label>
       <div class="publish-actions">
         <button class="action" data-action="save-dictation">
           ${icon("keyboard")} Dictee klaarzetten
@@ -613,7 +616,12 @@
     if (!graphemes.length) return;
     const indexes = missing?.length ? missing : [...graphemes.keys()];
     // Elke toevoeging is een aparte vraag, ook als hetzelfde woord al voorkomt.
-    state.questions.push({ word, graphemes, missing: indexes });
+    state.questions.push({
+      word,
+      graphemes,
+      missing: indexes,
+      showCopyWord: false,
+    });
     const isNewCustomWord =
       !DATA.wordBank.includes(word) && !state.customWords.includes(word);
 
@@ -646,8 +654,8 @@
           word: question.word,
           graphemes: [...question.graphemes],
           missing: [...question.missing],
+          showCopyWord: question.showCopyWord === true,
         })),
-        showCopyWord: state.showCopyWord,
       };
     } else {
       const groups = [
@@ -713,8 +721,12 @@
       state.exerciseName = e.target.value;
     }
 
-    if (e.target.id === "show-copy-word") {
-      state.showCopyWord = e.target.checked;
+    if (e.target.dataset.questionExample !== undefined) {
+      const question = state.questions[Number(e.target.dataset.questionExample)];
+      if (question) {
+        question.showCopyWord = e.target.checked;
+        saveToStorage();
+      }
     }
 
     if (e.target.id === "book-begin") {
@@ -773,9 +785,10 @@
         word: question.word,
         graphemes: [...question.graphemes],
         missing: [...question.missing],
+        showCopyWord:
+          question.showCopyWord ?? (settings.showCopyWord === true),
       }));
       state.exerciseName = exercise.name;
-      state.showCopyWord = settings.showCopyWord === true;
       state.editingExerciseId = id;
       state.publicationMessage = "";
       saveToStorage();
