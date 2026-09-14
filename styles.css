@@ -298,12 +298,12 @@ button {
   width: min(100%, 760px);
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 4px;
   margin-top: auto;
 }
 .key-row {
   display: flex;
-  gap: 6px;
+  gap: 4px;
   justify-content: center;
 }
 .key {
@@ -312,12 +312,14 @@ button {
   min-width: 0;
   height: clamp(46px, 8.6vh, 66px);
   border: 1px solid #b8d4d7;
-  border-bottom-width: 4px;
+  border-bottom-width: 2px;
   border-radius: 12px;
   background: #fff;
   color: var(--ink);
   font-size: clamp(1.25rem, 5vw, 1.75rem);
   font-weight: 700;
+   font-family: Andika, Arial, sans-serif;
+   font-weight: 400;
 }
 .key:active {
   transform: translateY(2px);
