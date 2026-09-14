@@ -165,7 +165,7 @@ button {
 .dictation {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   align-items: center;
 }
 .dictation-finished {
@@ -200,7 +200,6 @@ button {
 .finished-next .icon {
   width: 36px;
   height: 36px;
-   text-align: center;
 }
 .restart-button {
   margin-top: 12px;
@@ -241,7 +240,7 @@ button {
   border-radius: 12px;
 }
 .word-slots {
-  min-height: 90px;
+  min-height: 64px;
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -250,7 +249,7 @@ button {
 }
 .slot {
   min-width: 54px;
-  padding: 8px 8px 4px;
+  padding: 3px 8px 2px;
   border-bottom: 5px solid var(--teal);
   font-size: clamp(2.3rem, 10vw, 4.8rem);
   line-height: 1;
@@ -279,7 +278,7 @@ button {
   }
 }
 .feedback {
-  height: 58px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -308,19 +307,19 @@ button {
   justify-content: center;
 }
 .key {
+  /* Andika Regular blijft leesbaar zonder dat de toets zwaar oogt. */
+  font-family: Andika, Arial, sans-serif;
+  font-weight: 400;
   flex: 1;
   max-width: 68px;
   min-width: 0;
-  height: clamp(46px, 8.6vh, 66px);
+  min-height: 54px;
   border: 1px solid #b8d4d7;
   border-bottom-width: 2px;
   border-radius: 12px;
   background: #fff;
   color: var(--ink);
-  font-size: clamp(1.25rem, 5vw, 1.75rem);
-  font-weight: 700;
-   font-family: Andika, Arial, sans-serif;
-   font-weight: 400;
+  font-size: clamp(1.4rem, 5.5vw, 1.75rem);
 }
 .key:active {
   transform: translateY(2px);
@@ -585,6 +584,12 @@ button {
   .screen {
     padding-top: 10px;
   }
+  .screen.dictation {
+    /* Bewaar wat ruimte naast het kader, maar geef de toetsen daarbinnen
+       zo veel mogelijk breedte. De AZERTY-rijen blijven ongewijzigd. */
+    padding-right: 8px;
+    padding-left: 8px;
+  }
   .topbar {
     height: 62px;
   }
@@ -656,7 +661,7 @@ button {
     height: 40px;
   }
   .key {
-    height: 30px;
+    min-height: 44px;
   }
   .booklet {
     grid-template-columns: 1fr 2fr;
