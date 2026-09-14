@@ -789,6 +789,7 @@ button {
     padding-bottom: calc(5px + env(safe-area-inset-bottom));
     gap: 4px;
     overflow: hidden;
+    justify-content: center;
   }
 
   .dictation .listen {
@@ -805,7 +806,7 @@ button {
 
   .dictation-image {
     max-width: min(58vw, 250px);
-    max-height: 15svh;
+    max-height: 18svh;
     margin-bottom: 2px;
   }
 
@@ -838,6 +839,7 @@ button {
 
   .keyboard {
     gap: 3px;
+    margin-top: clamp(4px, 1svh, 10px);
   }
 
   .key-row {
