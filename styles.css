@@ -78,7 +78,7 @@ button {
 
 .topbar {
   height: 68px;
-  padding: 8px max(14px, env(safe-area-inset-left));
+  padding: 8px max(12px, env(safe-area-inset-left));
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -129,8 +129,8 @@ button {
 .screen {
   width: min(100%, 980px);
   margin: auto;
-  padding: 10px max(16px, env(safe-area-inset-left))
-    calc(22px + env(safe-area-inset-bottom));
+  padding: 10px max(14px, env(safe-area-inset-left))
+    calc(18px + env(safe-area-inset-bottom));
 }
 .home-grid {
   display: grid;
@@ -165,7 +165,7 @@ button {
 .dictation {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 12px;
   align-items: center;
 }
 .dictation-finished {
@@ -174,7 +174,7 @@ button {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 20px;
+  gap: 12px;
   text-align: center;
 }
 .finished-check {
@@ -200,11 +200,12 @@ button {
 .finished-next .icon {
   width: 36px;
   height: 36px;
+   text-align: center;
 }
 .restart-button {
-  margin-top: 18px;
-  width: 58px;
-  height: 58px;
+  margin-top: 12px;
+  width: 45px;
+  height: 45px;
   border: 0;
   border-radius: 50%;
   background: var(--blue);
