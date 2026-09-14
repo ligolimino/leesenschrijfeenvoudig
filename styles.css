@@ -195,12 +195,7 @@ button {
   font-size: clamp(2.5rem, 9vw, 4rem);
 }
 .finished-next {
-  display: flex;
-  align-items: center;
-  gap: 12px;
   color: var(--teal-dark);
-  font-size: clamp(1.25rem, 5vw, 1.8rem);
-  font-weight: 700;
 }
 .finished-next .icon {
   width: 36px;
@@ -208,12 +203,19 @@ button {
 }
 .restart-button {
   margin-top: 18px;
-  padding: 10px 18px;
+  width: 58px;
+  height: 58px;
   border: 0;
-  border-radius: 14px;
+  border-radius: 50%;
   background: var(--blue);
   color: var(--teal-dark);
   cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+.restart-button .icon {
+  width: 30px;
+  height: 30px;
 }
 .listen {
   width: 84px;
@@ -229,6 +231,13 @@ button {
 .listen .icon {
   width: 42px;
   height: 42px;
+}
+.dictation-image {
+  display: block;
+  max-width: min(100%, 320px);
+  max-height: min(30svh, 210px);
+  object-fit: contain;
+  border-radius: 12px;
 }
 .word-slots {
   min-height: 90px;
@@ -492,6 +501,15 @@ button {
   border-radius: 12px;
   background: #fee7ed;
   color: var(--bad);
+}
+.series-item {
+  flex-wrap: wrap;
+}
+.series-image-field {
+  flex-basis: 100%;
+  display: grid;
+  gap: 4px;
+  font-size: 0.9rem;
 }
 .suggestions {
   display: grid;

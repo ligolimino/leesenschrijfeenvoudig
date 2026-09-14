@@ -12,7 +12,6 @@
   const STORAGE_KEYS = {
     questions: "letterlab-questions-v1",
     custom: "letterlab-custom-words-v1",
-    audio: "letterlab-audio-v1",
     exercises: "letterlab-exercises-v1",
   };
 
@@ -80,7 +79,6 @@
         ? sharedExercise.questions
         : loadFromStorage(STORAGE_KEYS.questions, DATA.questions),
     customWords: loadFromStorage(STORAGE_KEYS.custom, []),
-    audio: loadFromStorage(STORAGE_KEYS.audio, {}),
     currentQuestionIndex: 0,
     typed: "",
     result: "",
@@ -100,7 +98,6 @@
       einde: DATA.clickBook.einde.join(", "),
     },
     exercises: loadFromStorage(STORAGE_KEYS.exercises, []),
-    recording: null,
   };
 
   function saveToStorage() {
@@ -112,7 +109,6 @@
       STORAGE_KEYS.custom,
       JSON.stringify(state.customWords),
     );
-    localStorage.setItem(STORAGE_KEYS.audio, JSON.stringify(state.audio));
     localStorage.setItem(
       STORAGE_KEYS.exercises,
       JSON.stringify(state.exercises),
@@ -201,47 +197,6 @@
     return tokenize(word).map(graphemeType).join("");
   }
 
-  function ownAudio(key) {
-    return state.audio[key];
-  }
-
-  function builtInAudio(key) {
-    return DATA.builtInAudio[key];
-  }
-
-  // ================================================================
-  // 4. AUDIO
-  // ================================================================
-
-  function speak(text, key = text) {
-    // Volgorde van voorkeur:
-    // 1. een opname die de lesgever in de app toevoegde;
-    // 2. een vaste opname uit assets/audio/klanken;
-    // 3. de automatische browserstem als noodoplossing.
-    const selectedAudio = ownAudio(key) || builtInAudio(key);
-
-    if (selectedAudio) {
-      const resolvedAudio = selectedAudio.startsWith("data:")
-        ? selectedAudio
-        : new URL(selectedAudio, DATA.baseUrl).href;
-
-      new Audio(resolvedAudio).play().catch(() => {});
-      return;
-    }
-    if (!("speechSynthesis" in window)) {
-      return;
-    }
-
-    speechSynthesis.cancel();
-
-    const utterance = new SpeechSynthesisUtterance(
-      DATA.soundPrompts[text] || text,
-    );
-    utterance.lang = "nl-BE";
-    utterance.rate = 0.72;
-    speechSynthesis.speak(utterance);
-  }
-
   function getCurrentQuestion() {
     return state.questions[state.currentQuestionIndex] || DATA.questions[0];
   }
@@ -328,9 +283,6 @@
 
     app.innerHTML = `${header()}
       <section class="screen dictation">
-        <button class="listen" data-action="speak-word" aria-label="Luister">
-          ${icon("speaker")}
-        </button>
         <div class="word-slots">${slots}</div>
         ${feedback}
         <div class="keyboard">
@@ -351,12 +303,12 @@
       <section class="screen dictation-finished" aria-label="Dictee afgerond">
         <div class="finished-check" aria-hidden="true">${icon("check")}</div>
         <h1>Klaar!</h1>
-        <div class="finished-next">
-          <span>Volgende oefening</span>
+        <div class="finished-next" aria-hidden="true">
           ${icon("next")}
         </div>
-        <button class="restart-button" data-action="restart-dictation">
-          Nog eens oefenen
+        <button class="restart-button" data-action="restart-dictation"
+          aria-label="Oefening opnieuw doen" title="Oefening opnieuw doen">
+          ${icon("retry")}
         </button>
       </section>`;
   }
@@ -379,9 +331,9 @@
           <button class="tiny-btn" data-book="${index}" data-delta="-1" aria-label="Vorige">
             ${icon("up")}
           </button>
-          <button class="sound-card" data-sound="${escapeHtml(value)}">
+          <span class="sound-card">
             ${escapeHtml(value)}
-          </button>
+          </span>
           <button class="tiny-btn" data-book="${index}" data-delta="1" aria-label="Volgende">
             ${icon("down")}
           </button>
@@ -392,12 +344,6 @@
     app.innerHTML = `${header()}
       <section class="screen booklet">
         <div class="book-word">
-          <button
-            class="listen"
-            data-sound="${escapeHtml(word)}"
-            data-audio-key="word:${escapeHtml(word)}"
-            aria-label="Luister"
-          >${icon("speaker")}</button>
           <span>${escapeHtml(word)}</span>
         </div>
         <div class="book-columns">${columns}</div>
@@ -494,44 +440,6 @@
         <div class="chips">${graphemeButtons}</div>
       </div>
       <div class="suggestions">${suggestion}</div>
-    </section>`;
-  }
-  function audioPanel() {
-    const graphemes = [
-      ...new Set(state.questions.flatMap((question) => question.graphemes)),
-    ];
-
-    const soundOptions = graphemes
-      .map(
-        (grapheme) =>
-          `<option value="sound:${escapeHtml(grapheme)}">klank: ${escapeHtml(grapheme)}</option>`,
-      )
-      .join("");
-
-    const wordOptions = state.questions
-      .map(
-        (question) =>
-          `<option value="word:${escapeHtml(question.word)}">woord: ${escapeHtml(question.word)}</option>`,
-      )
-      .join("");
-
-    return `<section class="panel">
-      <h2>Eigen uitspraak</h2>
-      <p class="help">Neem losse klanken of woorden op. Een eigen opname krijgt altijd voorrang.</p>
-      <div class="field">
-        <label for="audio-key">Klank of woord</label>
-        <select id="audio-key" class="select">
-          ${soundOptions}
-          ${wordOptions}
-        </select>
-      </div>
-      <p>
-        <button class="action" data-action="record">${icon("mic")} Opnemen</button>
-        <label class="action secondary">
-          ${icon("upload")} Audio kiezen
-          <input id="audio-file" type="file" accept="audio/*" hidden>
-        </label>
-      </p>
     </section>`;
   }
   function seriesPanel() {
@@ -639,7 +547,6 @@
         ${seriesPanel()}
         ${clickBookPanel()}
         ${savedExercisesPanel()}
-        ${audioPanel()}
       </main>`;
   }
   function render() {
@@ -655,45 +562,9 @@
   }
 
   // ================================================================
-  // 6. AUDIO OPNEMEN EN WOORDEN TOEVOEGEN
+  // 6. WOORDEN TOEVOEGEN
   // ================================================================
 
-  async function record() {
-    if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
-      alert("Opnemen wordt niet ondersteund in deze browser.");
-      return;
-    }
-    if (state.recording) {
-      state.recording.stop();
-      return;
-    }
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const chunks = [];
-      const recorder = new MediaRecorder(stream);
-      recorder.ondataavailable = (e) => chunks.push(e.data);
-      recorder.onstop = () => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const key = document.querySelector("#audio-key")?.value;
-          if (key) {
-            state.audio[key] = reader.result;
-            saveToStorage();
-          }
-          stream.getTracks().forEach((t) => t.stop());
-          state.recording = null;
-          manage();
-        };
-        reader.readAsDataURL(new Blob(chunks, { type: recorder.mimeType }));
-      };
-      recorder.start();
-      state.recording = recorder;
-      const b = document.querySelector('[data-action="record"]');
-      if (b) b.innerHTML = `${icon("close")} Stop`;
-    } catch {
-      alert("De microfoon kon niet worden geopend.");
-    }
-  }
   function addWord(word, missing = null) {
     const graphemes = tokenize(word);
     if (!graphemes.length) return;
@@ -788,23 +659,9 @@
       state.clickBookDraft.einde = e.target.value;
     }
   });
-  app.addEventListener("change", (e) => {
-    if (e.target.id === "audio-file" && e.target.files[0]) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const key = document.querySelector("#audio-key")?.value;
-        if (key) {
-          state.audio[key] = reader.result;
-          saveToStorage();
-          manage();
-        }
-      };
-      reader.readAsDataURL(e.target.files[0]);
-    }
-  });
   app.addEventListener("click", (e) => {
     const target = e.target.closest(
-      "button,[data-action],[data-sound],[data-key],[data-book],[data-missing],[data-pattern],[data-learned],[data-suggest],[data-copy-url],[data-delete-exercise]",
+      "button,[data-action],[data-key],[data-book],[data-missing],[data-pattern],[data-learned],[data-suggest],[data-copy-url],[data-delete-exercise]",
     );
     if (!target) return;
 
@@ -841,13 +698,6 @@
       }
 
       dictation();
-      return;
-    }
-    if (target.dataset.sound) {
-      speak(
-        target.dataset.sound,
-        target.dataset.audioKey || `sound:${target.dataset.sound}`,
-      );
       return;
     }
     if (target.dataset.book !== undefined) {
@@ -913,9 +763,6 @@
     } else if (action === "booklet") {
       state.mode = "booklet";
       render();
-    } else if (action === "speak-word") {
-      const question = getCurrentQuestion();
-      speak(question.word, `word:${question.word}`);
     } else if (action === "erase" && !state.result) {
       state.typed = state.typed.slice(0, -1);
       dictation();
@@ -952,8 +799,6 @@
       state.currentQuestionIndex = 0;
       saveToStorage();
       manage();
-    } else if (action === "record") {
-      record();
     } else if (action === "save-dictation") {
       saveExercise("dictee");
     } else if (action === "save-clickbook") {
