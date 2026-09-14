@@ -303,9 +303,6 @@
       <section class="screen dictation-finished" aria-label="Dictee afgerond">
         <div class="finished-check" aria-hidden="true">${icon("check")}</div>
         <h1>Klaar!</h1>
-        <div class="finished-next" aria-hidden="true">
-          ${icon("next")}
-        </div>
         <button class="restart-button" data-action="restart-dictation"
           aria-label="Oefening opnieuw doen" title="Oefening opnieuw doen">
           ${icon("retry")}
