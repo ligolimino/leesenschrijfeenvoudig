@@ -24,13 +24,57 @@
     }
   }
 
+  function decodeShortExerciseFromUrl() {
+    const parameters = new URLSearchParams(location.search);
+    const enteredWord = parameters.get("woord")?.trim().toLowerCase();
+    const enteredPositions = parameters.get("ontbreekt");
+
+    if (!enteredWord || !enteredPositions) {
+      return null;
+    }
+
+    const graphemes = tokenize(enteredWord);
+    const missing = [
+      ...new Set(
+        enteredPositions
+          .split(",")
+          .map((position) => Number.parseInt(position.trim(), 10) - 1)
+          .filter(
+            (position) =>
+              Number.isInteger(position) &&
+              position >= 0 &&
+              position < graphemes.length,
+          ),
+      ),
+    ];
+
+    if (!graphemes.length || !missing.length) {
+      return null;
+    }
+
+    const showCopyWord =
+      parameters.get("voorbeeld")?.trim().toLowerCase() === "ja";
+
+    return {
+      questions: [
+        {
+          word: graphemes.join(""),
+          graphemes,
+          missing,
+          showCopyWord,
+          image: "",
+        },
+      ],
+    };
+  }
+
   function decodeExerciseFromUrl() {
     try {
       const parameters = new URLSearchParams(location.hash.slice(1));
       const encodedExercise = parameters.get("oefening");
 
       if (!encodedExercise) {
-        return null;
+        return decodeShortExerciseFromUrl();
       }
 
       const base64 = encodedExercise.replace(/-/g, "+").replace(/_/g, "/");
@@ -40,7 +84,7 @@
 
       return JSON.parse(new TextDecoder().decode(bytes));
     } catch {
-      return null;
+      return decodeShortExerciseFromUrl();
     }
   }
 
@@ -82,17 +126,18 @@
   }
 
   const sharedExercise = decodeExerciseFromUrl();
+  const opensSharedDictation = Boolean(sharedExercise?.questions);
 
   // In state bewaren we alles wat tijdens het gebruik kan veranderen.
   const state = {
     mode:
-      APP_TYPE === "dictee"
+      APP_TYPE === "dictee" || opensSharedDictation
         ? "dictation"
         : APP_TYPE === "klikklak"
           ? "booklet"
           : "manage",
     questions:
-      APP_TYPE === "dictee" && sharedExercise?.questions
+      opensSharedDictation
         ? sharedExercise.questions
         : loadFromStorage(STORAGE_KEYS.questions, DATA.questions),
     customWords: loadFromStorage(STORAGE_KEYS.custom, []),
@@ -241,8 +286,7 @@
       return;
     }
     if (state.currentQuestionIndex >= state.questions.length) {
-      dictationFinished();
-      return;
+      state.currentQuestionIndex = state.questions.length - 1;
     }
     const question = getCurrentQuestion();
     // Nieuwe links bewaren de keuze per vraag. De tweede waarde houdt
@@ -278,9 +322,13 @@
 
     let feedback = '<div class="feedback"></div>';
     if (state.result === "good") {
+      const nextButton =
+        state.currentQuestionIndex < state.questions.length - 1
+          ? iconButton("next", "next-question", "Volgende", "good")
+          : "";
       feedback = `<div class="feedback good">
         ${icon("check")}
-        ${iconButton("next", "next-question", "Volgende", "good")}
+        ${nextButton}
       </div>`;
     }
     if (state.result === "wrong") {
@@ -320,19 +368,6 @@
       </section>`;
   }
 
-  function dictationFinished() {
-    // De app weet niet welke Genially-pagina na deze oefening komt.
-    // De pijl is daarom een aanwijzing, geen link naar een onbekende pagina.
-    app.innerHTML = `${header()}
-      <section class="screen dictation-finished" aria-label="Dictee afgerond">
-        <div class="finished-check" aria-hidden="true">${icon("check")}</div>
-        <h1>Klaar!</h1>
-        <button class="restart-button" data-action="restart-dictation"
-          aria-label="Oefening opnieuw doen" title="Oefening opnieuw doen">
-          ${icon("retry")}
-        </button>
-      </section>`;
-  }
 
   function booklet() {
     const groups = state.bookGroups;
@@ -903,7 +938,7 @@
       state.result = "";
       dictation();
     } else if (action === "next-question") {
-      // Na het laatste woord tonen we een eindscherm in plaats van te herbeginnen.
+      if (state.currentQuestionIndex >= state.questions.length - 1) return;
       state.currentQuestionIndex += 1;
       state.typed = "";
       state.result = "";
